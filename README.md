@@ -1,10 +1,11 @@
-# Next TS Template
+# Next TS Template (Supabase)
 
 Base template for Next.js (TypeScript) projects, preconfigured with:
 
 - pnpm (package manager + lockfile)
 - Tailwind (styling)
 - TanStack Query (server-state caching for React)
+- Supabase
 
 ## `src` Directory Structure
 
@@ -16,9 +17,10 @@ Base template for Next.js (TypeScript) projects, preconfigured with:
 │  ├─ lib/              # Application-wide utilities (logger, caching, etc.)
 │  ├─ server/           # Server-side domain logic and infrastructure
 │  │  ├─ auth/            # Session, OAuth, and auth guards
-│  │  ├─ db/              # DB client setup and shared models
+│  │  ├─ db/              # Supabase client setup and shared models
 │  │  ├─ commands/        # Write operations (create/update/delete)
-│  │  └─ queries/         # Read operations and query builders
+│  │  ├─ queries/         # Read operations and query builders
+│  │  └─ services/        # 3rd-party adapters (email, payments, external APIs)
 │  └─ ui/               # Atomic UI components shared across the app
 └─ public/              # Static assets served as-is
 ```
