@@ -1,6 +1,8 @@
 # Next TS Template
 
-Base template for Next projects!
+Base template for Next.js (TypeScript) projects, preconfigured with:
+* pnpm (package manager + lockfile)
+* TanStack Query (server-state caching for React)
 
 ## `src` Directory Structure
 
@@ -18,3 +20,6 @@ Base template for Next projects!
 │  └─ ui/               # Atomic UI components shared across the app
 └─ public/              # Static assets served as-is
 ```
+
+## `pnpm`
+This repo uses pnpm. Use `pnpm install` / `pnpm dev` (don’t generate npm/yarn lockfiles).
