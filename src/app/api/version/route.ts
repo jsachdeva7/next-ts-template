@@ -1,3 +1,5 @@
+import packageJson from '@/../package.json'
+
 export async function GET() {
-  return Response.json({ version: '0.1.0' })
+  return Response.json({ version: packageJson.version })
 }
