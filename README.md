@@ -2,6 +2,7 @@
 Base template for Next projects!
 
 ## `src` Directory Structure
+```
 ├─ src/
 |  ├─ app/              # Next.js App Router routes, layouts, pages
 |  |  ├─ api/             # Server API routes that need to be exposed beyond application
@@ -14,3 +15,4 @@ Base template for Next projects!
 |  |  ├─ queries/         # Read operations and query builders
 │  ├─ ui/               # Atomic components shared across the application
 ├─ public/              # Static assets served as-is
+```
