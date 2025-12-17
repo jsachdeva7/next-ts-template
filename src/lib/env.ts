@@ -2,12 +2,13 @@ import { z } from 'zod'
 
 const serverSchema = z.object({
   // Example server-only vars
-  // DATABASE_URL: z.string().url(),
 })
 
 const clientSchema = z.object({
   // Example client-only vars
   // NEXT_PUBLIC_API_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string()
 })
 
 function formatZodErrors(error: z.ZodError) {
