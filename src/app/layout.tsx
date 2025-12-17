@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { Providers } from './providers'
 
 export const metadata: Metadata = {
   title: 'Your App Name',
@@ -13,7 +14,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang='en'>
-      <body className='min-h-dvh antialiased'>{children}</body>
+      <body className='min-h-dvh antialiased' suppressHydrationWarning>
+        <Providers>{children}</Providers>
+      </body>
     </html>
   )
 }
