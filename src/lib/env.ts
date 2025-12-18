@@ -6,7 +6,6 @@ const serverSchema = z.object({
 
 const clientSchema = z.object({
   // Example client-only vars
-  // NEXT_PUBLIC_API_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string()
 })
@@ -17,7 +16,12 @@ function formatZodErrors(error: z.ZodError) {
 
 export const env = {
   client: (() => {
-    const parsed = clientSchema.safeParse(process.env)
+    const clientEnv = {
+      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    }
+    const parsed = clientSchema.safeParse(clientEnv)
     if (!parsed.success) {
       throw new Error(`Invalid client env:\n${formatZodErrors(parsed.error)}`)
     }

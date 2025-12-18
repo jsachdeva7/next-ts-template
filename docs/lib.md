@@ -77,12 +77,13 @@ Example error handling:
 
 ```ts
 import { HttpError } from '@/lib/http'
+import { logger } from '@/lib/logger'
 
 try {
   // ...
 } catch (e) {
   if (e instanceof HttpError) {
-    console.log(e.status, e.body)
+    logger.error('HTTP error', { status: e.status, body: e.body })
   }
 }
 ```
