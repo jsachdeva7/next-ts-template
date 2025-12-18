@@ -31,7 +31,7 @@ export default function SignUp() {
         return
       }
 
-      router.replace('/')
+      router.replace('/sign-in')
       router.refresh()
     } finally {
       setSubmitting(false)
@@ -101,6 +101,16 @@ export default function SignUp() {
       >
         {submitting ? 'Creating account…' : 'Sign up'}
       </button>
+
+      <p className='text-center text-sm text-neutral-600'>
+        Already have an account?{' '}
+        <a
+          href='/sign-in'
+          className='font-medium text-black underline underline-offset-2 hover:text-neutral-700'
+        >
+          Sign in
+        </a>
+      </p>
     </form>
   )
 }

@@ -10,7 +10,7 @@ export default async function LoginPage() {
     <div className='rounded-xl border bg-white p-6 shadow-sm'>
       <h1 className='text-2xl font-semibold'>Login</h1>
       <p className='mt-1 text-sm text-neutral-600'>
-        Sign in with your Supabase email + password.
+        Sign in with your email and password.
       </p>
 
       <div className='mt-6'>

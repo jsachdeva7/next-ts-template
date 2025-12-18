@@ -24,7 +24,7 @@ export default function SignIn() {
         return
       }
 
-      router.replace('/')
+      router.replace('/dashboard')
       router.refresh()
     } finally {
       setSubmitting(false)
@@ -78,6 +78,16 @@ export default function SignIn() {
       >
         {submitting ? 'Signing in…' : 'Sign in'}
       </button>
+
+      <p className='text-center text-sm text-neutral-600'>
+        Don't have an account?{' '}
+        <a
+          href='/sign-up'
+          className='font-medium text-black underline underline-offset-2 hover:text-neutral-700'
+        >
+          Sign up
+        </a>
+      </p>
     </form>
   )
 }

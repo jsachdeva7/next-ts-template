@@ -74,7 +74,7 @@ import { redirect } from 'next/navigation'
 export async function requireUser() {
   const supabase = await createSupabaseServerClient()
   const { data } = await supabase.auth.getUser()
-  if (!data.user) redirect('/login')
+  if (!data.user) redirect('/sign-in')
   return data.user
 }
 ```

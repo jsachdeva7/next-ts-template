@@ -9,6 +9,6 @@ export async function getUser() {
 
 export async function requireUser() {
   const user = await getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect('/sign-in')
   return user
 }
