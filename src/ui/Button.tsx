@@ -1,5 +1,6 @@
 import { cn } from '@/lib/cn'
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import { BeatLoader } from 'react-spinners'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary'
@@ -16,11 +17,10 @@ const variantStyles = {
 
 function Spinner({ variant }: { variant: 'primary' | 'secondary' }) {
   return (
-    <div
-      className={cn(
-        'loader mr-2',
-        variant === 'primary' ? 'bg-white' : 'bg-black'
-      )}
+    <BeatLoader
+      size={4}
+      color={variant === 'primary' ? '#ffffff' : '#000000'}
+      className='mr-2'
     />
   )
 }
