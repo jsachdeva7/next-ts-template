@@ -1,27 +1,30 @@
 'use client'
 
 import { authClient } from '@/lib/auth/client'
+import Button from '@/ui/Button'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
 
 export default function SignOut() {
   const router = useRouter()
+  const [loading, setLoading] = useState(false)
 
   async function handleSignOut() {
+    setLoading(true)
     try {
       await authClient.signOut()
       router.replace('/')
       router.refresh()
     } catch (error) {
       console.error('Sign out error:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
-    <button
-      onClick={handleSignOut}
-      className='rounded-md bg-black px-4 py-2 text-sm font-medium text-white hover:bg-neutral-800'
-    >
+    <Button onClick={handleSignOut} loading={loading}>
       Sign out
-    </button>
+    </Button>
   )
 }

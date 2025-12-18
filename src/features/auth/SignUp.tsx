@@ -1,6 +1,7 @@
 'use client'
 
 import { authClient } from '@/lib/auth/client'
+import Button from '@/ui/Button'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -132,13 +133,9 @@ export default function SignUp() {
         </div>
       ) : null}
 
-      <button
-        type='submit'
-        disabled={submitting}
-        className='w-full rounded-md bg-black px-3 py-2 text-sm font-medium text-white disabled:opacity-60'
-      >
-        {submitting ? 'Creating account…' : 'Sign up'}
-      </button>
+      <Button type='submit' loading={submitting} className='w-full'>
+        Sign up
+      </Button>
 
       <p className='text-center text-sm text-neutral-600'>
         Already have an account?{' '}
