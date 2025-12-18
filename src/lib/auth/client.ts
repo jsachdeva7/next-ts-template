@@ -9,7 +9,11 @@ export type AuthResult = { ok: true } | { ok: false; message: string }
 
 export interface AuthClient {
   signInWithPassword(email: string, password: string): Promise<AuthResult>
-  signUp(email: string, password: string): Promise<AuthResult>
+  signUp(
+    email: string,
+    password: string,
+    data: Record<string, string>
+  ): Promise<AuthResult>
   signOut(): Promise<void>
 }
 
