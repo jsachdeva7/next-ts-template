@@ -21,7 +21,8 @@ export function Providers({ children }: { children: React.ReactNode }) {
         closeOnClick
         newestOnTop
         position='bottom-center'
-        autoClose={false}
+        autoClose={1000}
+        toastClassName='p-0 w-full h-full flex items-center justify-center'
       />
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>

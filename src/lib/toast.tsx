@@ -17,7 +17,6 @@ export function showToast(
       <Toast {...props} type={type} variant={variant} data={data} />
     ),
     {
-      className: 'p-0 w-full h-full flex items-center justify-center',
       closeButton: false,
       ...options
     }

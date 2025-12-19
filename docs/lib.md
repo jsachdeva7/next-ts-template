@@ -127,3 +127,54 @@ assert(user, 'User is required') // user is now non-null
 const clean = values.filter(isDefined)
 await sleep(200)
 ```
+
+## `toast.tsx` — toast notifications (react-toastify)
+
+Use `showToast()` to display toast notifications throughout the app. Built on
+top of react-toastify with a custom Toast component.
+
+Toast types:
+
+- `'success'` — green checkmark icon
+- `'error'` — red alert icon
+- `'warning'` — amber warning icon
+- `'info'` — blue info icon
+
+Toast variants:
+
+- `'light'` — white background (default)
+- `'dark'` — dark background
+
+Basic usage:
+
+```ts
+import { showToast } from '@/lib/toast'
+
+// Simple info toast
+showToast('info', 'light', { message: 'Operation completed' })
+
+// Success toast with dark variant
+showToast('success', 'dark', { message: 'Saved successfully!' })
+
+// Error toast
+showToast('error', 'light', { message: 'Something went wrong' })
+```
+
+With additional options:
+
+```ts
+import { showToast } from '@/lib/toast'
+
+showToast(
+  'warning',
+  'light',
+  { message: 'Please review' },
+  {
+    autoClose: 5000,
+    position: 'top-right'
+  }
+)
+```
+
+Note: The `ToastContainer` is configured in `src/app/providers.tsx`. Global
+toast styling and behavior (position, auto-close, etc.) can be adjusted there.
