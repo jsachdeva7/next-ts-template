@@ -23,11 +23,13 @@ export default function SignIn() {
       const result = await authClient.signInWithPassword(email, password)
       if (!result.ok) {
         setError(result.message)
-        showToast('error', { message: result.message })
+        showToast('error', 'light', { message: result.message })
         return
       }
 
-      showToast('success', { message: 'Signed in successfully' })
+      showToast('success', 'light', {
+        message: `Signed in as ${email}`
+      })
       router.replace('/dashboard')
       router.refresh()
     } finally {
