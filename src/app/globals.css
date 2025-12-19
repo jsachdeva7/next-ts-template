@@ -1,8 +1,29 @@
 @import 'tailwindcss';
+@import 'react-toastify/dist/ReactToastify.css';
+
+:root {
+  --toastify-color-light: theme(colors.white);
+  --toastify-color-dark: theme(colors.neutral.800);
+  --toastify-color-transparent: rgba(255, 255, 255, 0);
+
+  --toastify-toast-padding: 0px;
+  --toastify-toast-shadow: 0px 0px 0px 0px rgba(0, 0, 0, 0);
+  --toastify-toast-height: fit-content;
+  --toastify-toast-offset: 16px;
+  --toastify-font-family: inherit;
+}
 
 @layer base {
   button,
   a[href] {
     cursor: pointer;
+  }
+}
+
+@layer base {
+  .Toastify__toast {
+    height: fit-content !important;
+    width: fit-content !important;
+    min-height: fit-content !important;
   }
 }

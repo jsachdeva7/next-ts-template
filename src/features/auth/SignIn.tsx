@@ -1,6 +1,7 @@
 'use client'
 
 import { authClient } from '@/lib/auth/client'
+import { showToast } from '@/lib/toast'
 import Button from '@/ui/Button'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -22,9 +23,11 @@ export default function SignIn() {
       const result = await authClient.signInWithPassword(email, password)
       if (!result.ok) {
         setError(result.message)
+        showToast('error', { message: result.message })
         return
       }
 
+      showToast('success', { message: 'Signed in successfully' })
       router.replace('/dashboard')
       router.refresh()
     } finally {
