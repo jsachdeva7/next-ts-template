@@ -2,12 +2,10 @@
 
 import { authClient } from '@/lib/auth/client'
 import Button from '@/ui/Button'
-import { useRouter } from 'next/navigation'
+import { CircleCheck } from 'lucide-react'
 import { useState } from 'react'
 
 export default function SignUp() {
-  const router = useRouter()
-
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -15,6 +13,7 @@ export default function SignUp() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showVerification, setShowVerification] = useState(false)
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -37,115 +36,142 @@ export default function SignUp() {
         return
       }
 
-      router.replace('/sign-in')
-      router.refresh()
+      setShowVerification(true)
     } finally {
       setSubmitting(false)
     }
   }
 
+  if (showVerification) {
+    return (
+      <div className='space-y-4'>
+        <div className='flex items-center gap-2'>
+          <CircleCheck className='size-7 pt-1' />
+          <h1 className='text-2xl font-semibold'>Verify your email</h1>
+        </div>
+        <p className='mt-1 text-sm text-neutral-600'>
+          Click the link in the email we sent to{' '}
+          <span className='font-medium text-neutral-900'>{email}</span> to
+          verify your email and get started!
+        </p>
+      </div>
+    )
+  }
+
   return (
-    <form onSubmit={onSubmit} className='space-y-4' suppressHydrationWarning>
-      <div className='flex gap-4'>
-        <div className='flex-1 space-y-1'>
-          <label className='text-sm font-medium' htmlFor='first-name'>
-            First Name
-          </label>
-          <input
-            id='first-name'
-            type='text'
-            autoComplete='given-name'
-            required
-            value={firstName}
-            onChange={e => setFirstName(e.target.value)}
-            className='w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-black/20'
-            placeholder='John'
-          />
-        </div>
-        <div className='flex-1 space-y-1'>
-          <label className='text-sm font-medium' htmlFor='last-name'>
-            Last Name
-          </label>
-          <input
-            id='last-name'
-            type='text'
-            autoComplete='family-name'
-            required
-            value={lastName}
-            onChange={e => setLastName(e.target.value)}
-            className='w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-black/20'
-            placeholder='Doe'
-          />
-        </div>
-      </div>
-
-      <div className='space-y-1'>
-        <label className='text-sm font-medium' htmlFor='email'>
-          Email
-        </label>
-        <input
-          id='email'
-          type='email'
-          autoComplete='email'
-          required
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          className='w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-black/20'
-          placeholder='you@example.com'
-        />
-      </div>
-
-      <div className='space-y-1'>
-        <label className='text-sm font-medium' htmlFor='password'>
-          Password
-        </label>
-        <input
-          id='password'
-          type='password'
-          autoComplete='new-password'
-          required
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          className='w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-black/20'
-          placeholder='••••••••'
-        />
-      </div>
-
-      <div className='space-y-1'>
-        <label className='text-sm font-medium' htmlFor='confirm-password'>
-          Confirm Password
-        </label>
-        <input
-          id='confirm-password'
-          type='password'
-          autoComplete='new-password'
-          required
-          value={confirmPassword}
-          onChange={e => setConfirmPassword(e.target.value)}
-          className='w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-black/20'
-          placeholder='••••••••'
-        />
-      </div>
-
-      {error ? (
-        <div className='rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>
-          {error}
-        </div>
-      ) : null}
-
-      <Button type='submit' loading={submitting} className='w-full'>
-        Sign up
-      </Button>
-
-      <p className='text-center text-sm text-neutral-600'>
-        Already have an account?{' '}
-        <a
-          href='/sign-in'
-          className='font-medium text-black underline underline-offset-2 hover:text-neutral-700'
-        >
-          Sign in
-        </a>
+    <>
+      <h1 className='text-2xl font-semibold'>Sign up</h1>
+      <p className='mt-1 text-sm text-neutral-600'>
+        Create an account with your email and password.
       </p>
-    </form>
+      <div className='mt-6'>
+        <form
+          onSubmit={onSubmit}
+          className='space-y-4'
+          suppressHydrationWarning
+        >
+          <div className='flex gap-4'>
+            <div className='flex-1 space-y-1'>
+              <label className='text-sm font-medium' htmlFor='first-name'>
+                First Name
+              </label>
+              <input
+                id='first-name'
+                type='text'
+                autoComplete='given-name'
+                required
+                value={firstName}
+                onChange={e => setFirstName(e.target.value)}
+                className='w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-black/20'
+                placeholder='John'
+              />
+            </div>
+            <div className='flex-1 space-y-1'>
+              <label className='text-sm font-medium' htmlFor='last-name'>
+                Last Name
+              </label>
+              <input
+                id='last-name'
+                type='text'
+                autoComplete='family-name'
+                required
+                value={lastName}
+                onChange={e => setLastName(e.target.value)}
+                className='w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-black/20'
+                placeholder='Doe'
+              />
+            </div>
+          </div>
+
+          <div className='space-y-1'>
+            <label className='text-sm font-medium' htmlFor='email'>
+              Email
+            </label>
+            <input
+              id='email'
+              type='email'
+              autoComplete='email'
+              required
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              className='w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-black/20'
+              placeholder='you@example.com'
+            />
+          </div>
+
+          <div className='space-y-1'>
+            <label className='text-sm font-medium' htmlFor='password'>
+              Password
+            </label>
+            <input
+              id='password'
+              type='password'
+              autoComplete='new-password'
+              required
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              className='w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-black/20'
+              placeholder='••••••••'
+            />
+          </div>
+
+          <div className='space-y-1'>
+            <label className='text-sm font-medium' htmlFor='confirm-password'>
+              Confirm Password
+            </label>
+            <input
+              id='confirm-password'
+              type='password'
+              autoComplete='new-password'
+              required
+              value={confirmPassword}
+              onChange={e => setConfirmPassword(e.target.value)}
+              className='w-full rounded-md border px-3 py-2 outline-none focus:ring-2 focus:ring-black/20'
+              placeholder='••••••••'
+            />
+          </div>
+
+          {error ? (
+            <div className='rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>
+              {error}
+            </div>
+          ) : null}
+
+          <Button type='submit' loading={submitting} className='w-full'>
+            Sign up
+          </Button>
+
+          <p className='text-center text-sm text-neutral-600'>
+            Already have an account?{' '}
+            <a
+              href='/sign-in'
+              className='font-medium text-black underline underline-offset-2 hover:text-neutral-700'
+            >
+              Sign in
+            </a>
+          </p>
+        </form>
+      </div>
+    </>
   )
 }
