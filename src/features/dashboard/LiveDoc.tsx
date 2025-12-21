@@ -1,8 +1,13 @@
 'use client'
 
 import { logger } from '@/lib/logger'
-import { presence, usePresence } from '@/lib/realtime'
-import { getCurrentUserProfileAction, getUserAction } from '@/server/actions'
+import { live, presence, useBroadcast, usePresence } from '@/lib/realtime'
+import { showToast } from '@/lib/toast'
+import {
+  getCurrentUserProfileAction,
+  getUserAction,
+  renameDocAction
+} from '@/server/actions'
 import { User } from '@supabase/supabase-js'
 import { Eye, FileText } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -29,9 +34,25 @@ export default function LiveDoc() {
     setIsEditingTitle(true)
   }
 
-  const handleConfirm = () => {
-    setTitle(editTitleValue.trim() || 'Untitled')
-    setIsEditingTitle(false)
+  const handleConfirm = async () => {
+    const newTitle = editTitleValue.trim() || 'Untitled'
+
+    if (!docId) {
+      setTitle(newTitle)
+      setIsEditingTitle(false)
+      return
+    }
+
+    try {
+      const result = await renameDocAction(docId, newTitle)
+      setTitle(result.title)
+      setIsEditingTitle(false)
+    } catch (error) {
+      showToast('error', 'light', {
+        message: error instanceof Error ? error.message : 'Rename failed'
+      })
+      setEditTitleValue(title)
+    }
   }
 
   const handleCancel = () => {
@@ -77,16 +98,35 @@ export default function LiveDoc() {
   }, [])
 
   const docId = userId ? `${userId}_doc` : ''
-  const channelName = docId ? presence('doc', docId) : ''
+  const presenceChannel = docId ? presence('doc', docId) : ''
+  const liveChannel = docId ? live('doc', docId) : ''
 
-  // Create per-tab presence key so multiple tabs from same user count as separate peers
   const presenceKey = userId ? `${userId}:${tabId}` : undefined
 
-  const { peersCount } = usePresence(channelName, {
+  const { peersCount } = usePresence(presenceChannel, {
     key: presenceKey,
-    state: { name: profileName || 'Anonymous' }, // Always defined so autoTrack runs immediately
+    state: { name: profileName || 'Anonymous' },
     autoTrack: true
   })
+
+  const { on } = useBroadcast(liveChannel)
+
+  useEffect(() => {
+    if (!docId) return
+
+    on('delta', (payload: { type?: string; title?: string }) => {
+      if (payload.type === 'title_updated' && payload.title) {
+        setTitle(currentTitle => {
+          // Only update if different to avoid double-set
+          if (payload.title && payload.title !== currentTitle) {
+            return payload.title
+          }
+          return currentTitle
+        })
+        setIsEditingTitle(false)
+      }
+    })
+  }, [on, docId])
 
   return (
     <div className='w-full max-w-2xl rounded-lg border border-neutral-200 bg-white shadow-sm'>

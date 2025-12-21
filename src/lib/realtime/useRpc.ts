@@ -3,6 +3,7 @@
 import { logger } from '@/lib/logger'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useCallback, useEffect, useRef } from 'react'
+import type { RpcRequest } from './types'
 import { useBroadcast } from './useBroadcast'
 import type { ChannelStatus, UseChannelOptions } from './useChannel'
 
@@ -53,7 +54,10 @@ export interface UseRpcReturn {
   call: <TParams = unknown, TResult = unknown>(
     action: string,
     params: TParams,
-    options?: { timeoutMs?: number }
+    options?: {
+      timeoutMs?: number
+      resource?: { domain: string; resourceId: string }
+    }
   ) => Promise<TResult>
   /**
    * Send a fire-and-forget notification (no response expected).
@@ -209,7 +213,10 @@ export function useRpc(
     <TParams = unknown, TResult = unknown>(
       action: string,
       params: TParams,
-      options?: { timeoutMs?: number }
+      options?: {
+        timeoutMs?: number
+        resource?: { domain: string; resourceId: string }
+      }
     ): Promise<TResult> => {
       // Throw if channel is not connected
       if (status !== 'connected') {
@@ -269,7 +276,13 @@ export function useRpc(
         })
 
         // Send RPC request
-        send('rpc', { requestId, action, params }).catch(error => {
+        const rpcPayload: RpcRequest<TParams> = {
+          requestId,
+          action,
+          params,
+          ...(options?.resource && { resource: options.resource })
+        }
+        send('rpc', rpcPayload).catch(error => {
           // If send fails, clean up and reject
           const pending = pendingRef.current.get(requestId)
           if (pending) {

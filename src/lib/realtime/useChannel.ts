@@ -184,19 +184,38 @@ export function useChannel(
     }
 
     // Subscribe to the channel
-    newChannel.subscribe(status => {
+    // Supabase's subscribe callback can receive status as first param and error as second
+    newChannel.subscribe((status, error) => {
       // Guard against callbacks after cleanup
       if (!active) return
 
       if (status === 'SUBSCRIBED') {
         updateStatus('connected')
       } else if (status === 'CHANNEL_ERROR') {
-        logger.error(`[Realtime] Channel error for "${channelName}":`, status)
+        const errorDetails = error
+          ? error instanceof Error
+            ? error.message
+            : String(error)
+          : 'Unknown error'
+        logger.error(
+          `[Realtime] Channel error for "${channelName}":`,
+          errorDetails,
+          error || ''
+        )
         updateStatus('errored')
       } else if (status === 'TIMED_OUT' || status === 'CLOSED') {
         updateStatus('disconnected')
       }
       // Note: Supabase also has 'JOINED' status, but we treat SUBSCRIBED as connected
+    })
+
+    // Also listen for system error events for additional error details
+    newChannel.on('system', { status: 'error' }, payload => {
+      if (!active) return
+      logger.error(
+        `[Realtime] System error on channel "${channelName}":`,
+        payload
+      )
     })
 
     // Cleanup function - React guarantees this runs before the next effect

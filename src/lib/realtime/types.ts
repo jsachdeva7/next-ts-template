@@ -57,6 +57,13 @@ export interface RpcRequest<TParams = unknown> {
   action: string
   /** Parameters for the action */
   params: TParams
+  /** Optional resource identifier for routing and authorization */
+  resource?: {
+    /** The domain of the resource (e.g., 'doc', 'comment') */
+    domain: string
+    /** The resource identifier (e.g., docId, commentId) */
+    resourceId: string
+  }
 }
 
 /**
