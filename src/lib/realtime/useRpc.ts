@@ -178,8 +178,9 @@ export function useRpc(
 
   // Clean up on unmount: reject all pending promises and clear timeouts
   useEffect(() => {
+    // Capture current ref value at effect creation time
+    const pending = pendingRef.current
     return () => {
-      const pending = pendingRef.current
       const unmountError = new Error('RPC cancelled: component unmounted')
 
       for (const [

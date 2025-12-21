@@ -123,6 +123,8 @@ export function useChannel(
   useEffect(() => {
     // Skip if channelName is empty
     if (!channelName) {
+      // Reset state when channelName is empty (intentional synchronous state update)
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setChannel(null)
       setStatus('disconnected')
       return

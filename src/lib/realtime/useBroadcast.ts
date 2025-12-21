@@ -184,15 +184,15 @@ export function useBroadcast(
       // Note: Supabase doesn't provide a clean way to unsubscribe individual handlers,
       // so we rely on channel cleanup (via useChannel) to remove all listeners
       // Supabase's broadcast callback receives { event, payload, ... }
-      channel.on('broadcast', { event }, msg => {
+      channel.on('broadcast', { event }, (msg: { payload: unknown }) => {
         if (debugLabelRef.current) {
           logger.debug(
             `[Realtime:${debugLabelRef.current}] Received broadcast "${event}":`,
-            (msg as any).payload
+            msg.payload
           )
         }
         // Extract payload from the message object
-        handler((msg as any).payload as T)
+        handler(msg.payload as T)
       })
     },
     [channel]

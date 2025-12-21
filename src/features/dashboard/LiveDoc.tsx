@@ -82,7 +82,7 @@ export default function LiveDoc() {
   // Create per-tab presence key so multiple tabs from same user count as separate peers
   const presenceKey = userId ? `${userId}:${tabId}` : undefined
 
-  const { peersCount, peers, status } = usePresence(channelName, {
+  const { peersCount } = usePresence(channelName, {
     key: presenceKey,
     state: { name: profileName || 'Anonymous' }, // Always defined so autoTrack runs immediately
     autoTrack: true

@@ -82,7 +82,7 @@ export default function SignIn() {
       </Button>
 
       <p className='text-center text-sm text-neutral-600'>
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <a
           href='/sign-up'
           className='font-medium text-black underline underline-offset-2 hover:text-neutral-700'
