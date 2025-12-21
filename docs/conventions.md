@@ -69,23 +69,31 @@ src/server/
 ├─ auth/              # auth/session helpers (provider-specific code lives here)
 ├─ queries/           # read operations (no writes)
 ├─ commands/          # write operations (create/update/delete)
+├─ actions/           # shared server actions (for client components to call)
 └─ services/          # 3rd-party adapters (email, payments, external APIs)
 ```
 
 Rules:
 
-- No React imports.
+- No React imports (except in `actions/` which must use `'use server'`).
 - No Request/Response objects.
 - `queries/` are read-only; `commands/` mutate state.
+- `actions/` are thin wrappers around `queries/` and `commands/` for client
+  components.
 
 ## 5) Server Actions vs app/api route handlers
 
 Both are valid boundaries. Keep boundaries thin and call into src/server/\*.
 
+**Where server actions live:**
+
+- `src/server/actions/` - Shared server actions used by multiple features
+- `src/features/<feature>/actions.ts` - Feature-specific server actions
+
 Use server actions when:
 
-- the caller is your UI
-- it’s a form/mutation or tightly-coupled app behavior
+- the caller is your UI (client components)
+- it's a form/mutation or tightly-coupled app behavior
 
 Use app/api route handlers when:
 
@@ -113,10 +121,22 @@ A typical request path:
 ```text
 UI (features/<feature>/components/*)
   → TanStack hook (features/<feature>/api.ts)
-  → Boundary (server action in features/<feature>/actions.ts OR app/api/*)
+  → Boundary (server action in server/actions/* OR features/<feature>/actions.ts OR app/api/*)
   → Server logic (server/queries/* or server/commands/*)
   → DB/service (server/db/*, server/services/*)
 ```
+
+**For client components:**
+
+- Use shared actions from `server/actions/*` when multiple features need the
+  same operation
+- Use feature-specific actions from `features/<feature>/actions.ts` when it's
+  unique to that feature
+
+**For server components:**
+
+- Call `server/queries/*` and `server/commands/*` directly (no action wrapper
+  needed)
 
 Keep boundaries small; put logic in `features/` (client/domain) or `server/`
 (server/domain), not in `app/`.

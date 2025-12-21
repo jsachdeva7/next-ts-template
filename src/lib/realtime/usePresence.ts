@@ -114,27 +114,35 @@ export function usePresence(
   channelName: string,
   options: UsePresenceOptions = {}
 ): UsePresenceReturn {
-  const { key, state, autoTrack = !!state, ...channelOptions } = options
+  const {
+    key,
+    state,
+    autoTrack = !!state,
+    private: isPrivate = true,
+    ...channelOptions
+  } = options
 
-  // Build channel config with presence key if provided
+  // Build channel config with presence key and private setting
   const channelConfig = useMemo(() => {
-    if (!key) return undefined
-    return {
-      config: {
-        presence: {
-          key
-        }
-      }
-    }
-  }, [key])
+    const config: { private?: boolean; presence?: { key: string } } = {}
 
-  const { channel, status } = useChannel(channelName, {
-    ...channelOptions,
-    channelConfig
-  })
+    if (isPrivate) {
+      config.private = true
+    }
+
+    if (key) {
+      config.presence = { key }
+    }
+
+    // Only return config if we have something to set
+    if (Object.keys(config).length > 0) {
+      return { config }
+    }
+
+    return undefined
+  }, [key, isPrivate])
 
   const [rawPresenceState, setRawPresenceState] = useState<RawPresenceState>({})
-  const registeredForRef = useRef<RealtimeChannel | null>(null)
   const debugLabelRef = useRef(channelOptions.debugLabel)
 
   // Keep debugLabel ref up to date
@@ -150,79 +158,38 @@ export function usePresence(
     }))
   }, [rawPresenceState])
 
-  // Register presence handlers exactly once per channel instance
-  useEffect(() => {
-    if (!channel) {
-      return
-    }
-
-    // Skip if already registered for this channel instance
-    if (registeredForRef.current === channel) {
-      return
-    }
-
-    registeredForRef.current = channel
-
-    if (debugLabelRef.current) {
-      logger.debug(
-        `[Realtime:${debugLabelRef.current}] Registering presence handlers`
-      )
-    }
-
+  // Register presence handlers before channel subscribes (to catch initial sync event)
+  const beforeSubscribe = useCallback((channel: RealtimeChannel) => {
     // Handle presence sync (initial state)
     channel.on('presence', { event: 'sync' }, () => {
       const presenceState = channel.presenceState()
-      if (debugLabelRef.current) {
-        logger.debug(
-          `[Realtime:${debugLabelRef.current}] Presence sync:`,
-          Object.keys(presenceState).length,
-          'peers'
-        )
-      }
-      setRawPresenceState(presenceState as RawPresenceState)
+      // Create a new object to ensure React detects the change
+      setRawPresenceState({ ...(presenceState as RawPresenceState) })
     })
 
     // Handle presence join
-    channel.on(
-      'presence',
-      { event: 'join' },
-      ({ key: peerKey, newPresences }) => {
-        if (debugLabelRef.current) {
-          logger.debug(
-            `[Realtime:${debugLabelRef.current}] Presence join:`,
-            peerKey,
-            newPresences
-          )
-        }
-        // Update state by getting fresh presence state
-        const presenceState = channel.presenceState()
-        setRawPresenceState(presenceState as RawPresenceState)
-      }
-    )
+    channel.on('presence', { event: 'join' }, () => {
+      // Update state by getting fresh presence state
+      const presenceState = channel.presenceState()
+      // Create a new object to ensure React detects the change
+      setRawPresenceState({ ...(presenceState as RawPresenceState) })
+    })
 
     // Handle presence leave
-    channel.on(
-      'presence',
-      { event: 'leave' },
-      ({ key: peerKey, leftPresences }) => {
-        if (debugLabelRef.current) {
-          logger.debug(
-            `[Realtime:${debugLabelRef.current}] Presence leave:`,
-            peerKey,
-            leftPresences
-          )
-        }
-        // Update state by getting fresh presence state
-        const presenceState = channel.presenceState()
-        setRawPresenceState(presenceState as RawPresenceState)
-      }
-    )
+    channel.on('presence', { event: 'leave' }, () => {
+      // Update state by getting fresh presence state
+      const presenceState = channel.presenceState()
+      // Create a new object to ensure React detects the change
+      setRawPresenceState({ ...(presenceState as RawPresenceState) })
+    })
+  }, [])
 
-    // Cleanup: reset registeredForRef when channel changes/unmounts
-    return () => {
-      registeredForRef.current = null
-    }
-  }, [channel])
+  const { channel, status } = useChannel(channelName, {
+    ...channelOptions,
+    private: isPrivate,
+    channelConfig,
+    beforeSubscribe
+  })
 
   // Auto-track state when connected (if autoTrack is enabled)
   // Uses a small delay to ensure channel is fully ready
@@ -232,13 +199,15 @@ export function usePresence(
     }
 
     // Small delay to ensure channel is fully ready
-    const timeoutId = setTimeout(() => {
-      if (debugLabelRef.current) {
-        logger.debug(
-          `[Realtime:${debugLabelRef.current}] Auto-tracking presence state`
+    const timeoutId = setTimeout(async () => {
+      try {
+        await channel.track(state)
+      } catch (error) {
+        logger.error(
+          `[Realtime:${debugLabelRef.current || 'presence'}] track error:`,
+          error
         )
       }
-      channel.track(state)
     }, 100)
 
     return () => clearTimeout(timeoutId)
@@ -250,22 +219,15 @@ export function usePresence(
   const track = useCallback(
     (newState: Record<string, unknown>) => {
       if (!channel || status !== 'connected') {
-        if (debugLabelRef.current) {
-          logger.debug(
-            `[Realtime:${debugLabelRef.current}] Cannot track: channel not connected (status: ${status})`
-          )
-        }
         return
       }
 
-      if (debugLabelRef.current) {
-        logger.debug(
-          `[Realtime:${debugLabelRef.current}] Tracking presence:`,
-          newState
+      channel.track(newState).catch(error => {
+        logger.error(
+          `[Realtime:${debugLabelRef.current || 'presence'}] track error:`,
+          error
         )
-      }
-
-      channel.track(newState)
+      })
     },
     [channel, status]
   )

@@ -3,19 +3,24 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import { BeatLoader } from 'react-spinners'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary'
+  variant?: 'primary' | 'secondary' | 'outline'
   loading?: boolean
   children: ReactNode
 }
 
 const variantStyles = {
   primary:
-    'bg-black text-white hover:bg-neutral-800 disabled:opacity-60 disabled:hover:bg-black',
+    'bg-neutral-800 text-white hover:bg-neutral-700 disabled:opacity-60 disabled:hover:bg-neutral-800',
   secondary:
-    'bg-neutral-200 text-black hover:bg-neutral-300 disabled:opacity-60 disabled:hover:bg-neutral-200'
+    'bg-neutral-100 text-black hover:bg-neutral-200 disabled:opacity-60 disabled:hover:bg-neutral-100',
+  outline: 'p-0 m-0 text-neutral-500 hover:text-neutral-700 disabled:opacity-50'
 }
 
-function Spinner({ variant }: { variant: 'primary' | 'secondary' }) {
+function Spinner({
+  variant
+}: {
+  variant: 'primary' | 'secondary' | 'outline'
+}) {
   return (
     <BeatLoader
       size={4}
@@ -37,7 +42,9 @@ export default function Button({
     <button
       disabled={disabled || loading}
       className={cn(
-        'rounded-md px-3 py-2 text-sm font-medium transition-colors',
+        variant === 'outline'
+          ? 'transition-colors'
+          : 'rounded-md px-3 py-2 text-sm font-medium transition-colors',
         variantStyles[variant],
         className
       )}

@@ -29,10 +29,22 @@ export interface UseChannelOptions {
    */
   debugLabel?: string
   /**
+   * Whether the channel should be private (requires authentication).
+   * @default true
+   */
+  private?: boolean
+  /**
    * Optional channel configuration (e.g., for presence).
    * Passed directly to supabase.channel(name, config).
+   * Note: The `private` option will be merged into this config.
    */
   channelConfig?: RealtimeChannelOptions
+  /**
+   * Callback invoked with the channel instance before subscribing.
+   * Use this to register event handlers (e.g., presence) that need to
+   * be set up before the initial sync event fires.
+   */
+  beforeSubscribe?: (channel: RealtimeChannel) => void
 }
 
 export interface UseChannelReturn {
@@ -74,7 +86,14 @@ export function useChannel(
   channelName: string,
   options: UseChannelOptions = {}
 ): UseChannelReturn {
-  const { onStatusChange, onConnected, debugLabel, channelConfig } = options
+  const {
+    onStatusChange,
+    onConnected,
+    debugLabel,
+    private: isPrivate = true,
+    channelConfig,
+    beforeSubscribe
+  } = options
 
   // Get a stable Supabase client instance
   const supabase = useMemo(() => createRealtimeClient(), [])
@@ -128,12 +147,33 @@ export function useChannel(
       }
     }
 
+    // Merge channelConfig with private setting
+    const finalChannelConfig: RealtimeChannelOptions | undefined = (() => {
+      // If no config needed, return undefined
+      if (!isPrivate && !channelConfig) {
+        return undefined
+      }
+
+      // Build merged config
+      const merged = {
+        config: {
+          ...(isPrivate ? { private: true } : {}),
+          ...(channelConfig?.config || {})
+        }
+      }
+
+      return merged
+    })()
+
     // Create or get the channel
-    const newChannel = channelConfig
-      ? supabase.channel(channelName, channelConfig)
+    const newChannel = finalChannelConfig
+      ? supabase.channel(channelName, finalChannelConfig)
       : supabase.channel(channelName)
     setChannel(newChannel)
     updateStatus('connecting')
+
+    // Register handlers before subscribing (e.g., for presence sync events)
+    beforeSubscribe?.(newChannel)
 
     if (debugLabelRef.current) {
       logger.debug(
@@ -170,7 +210,7 @@ export function useChannel(
       // Don't set state here - let the next effect run set the new channel/status
       // This avoids flicker and prevents callbacks during teardown
     }
-  }, [channelName, supabase, channelConfig])
+  }, [channelName, supabase, channelConfig, isPrivate, beforeSubscribe])
 
   return { channel, status }
 }

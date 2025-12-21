@@ -4,9 +4,9 @@ import { logger } from '@/lib/logger'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { useCallback, useEffect, useRef } from 'react'
 import {
-    useChannel,
-    type ChannelStatus,
-    type UseChannelOptions
+  useChannel,
+  type ChannelStatus,
+  type UseChannelOptions
 } from './useChannel'
 
 export interface UseBroadcastReturn {

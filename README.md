@@ -19,6 +19,7 @@ preconfigured with:
 │  ├─ server/           # Server-side domain logic and infrastructure
 │  │  ├─ auth/            # Session, OAuth, and auth guards
 │  │  ├─ db/              # Supabase client setup and shared models
+│  │  ├─ actions/         # Shared server actions (for client components)
 │  │  ├─ commands/        # Write operations (create/update/delete)
 │  │  ├─ queries/         # Read operations and query builders
 │  │  └─ services/        # 3rd-party adapters (email, payments, external APIs)
