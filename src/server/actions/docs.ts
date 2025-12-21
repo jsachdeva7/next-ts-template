@@ -15,5 +15,10 @@ export async function renameDocAction(
   docId: string,
   title: string
 ): Promise<DocRenameResult> {
-  return renameDoc(docId, title)
+  try {
+    return await renameDoc(docId, title)
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    throw new Error(`Failed to rename document: ${errorMessage}`)
+  }
 }

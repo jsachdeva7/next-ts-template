@@ -6,13 +6,10 @@
  *
  * @example
  * ```tsx
- * import { useBroadcast, useRpc, usePresence, live, ctrl, presence } from '@/lib/realtime'
+ * import { useBroadcast, usePresence, live, presence } from '@/lib/realtime'
  *
  * // Use broadcast for one-to-many messaging
  * const { send, on } = useBroadcast(live('game', '123'))
- *
- * // Use RPC for request/response
- * const { call, notify } = useRpc(ctrl('worker', 'main'))
  *
  * // Use presence to track who's online
  * const { peers, track } = usePresence(presence('room', 'general'), { key: userId })
@@ -32,13 +29,10 @@ export {
   type UsePresenceOptions,
   type UsePresenceReturn
 } from './usePresence'
-export { useRpc, type UseRpcOptions, type UseRpcReturn } from './useRpc'
 
 // Channel naming helpers
 export {
   channel,
-  ctrl,
-  ctrlTopic,
   encodeSegment,
   live,
   liveTopic,
@@ -53,12 +47,9 @@ export {
 export {
   REALTIME_ENVELOPE_VERSION,
   realtimeEvents,
-  type RealtimeCtrlEvent,
   type RealtimeEnvelope,
   type RealtimeError,
-  type RealtimeLiveEvent,
-  type RpcAck,
-  type RpcRequest
+  type RealtimeLiveEvent
 } from './types'
 
 // Client factory (for advanced use cases)

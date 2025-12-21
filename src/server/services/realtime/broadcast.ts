@@ -1,12 +1,12 @@
-import { env } from '@/lib/env'
 import { live } from '@/lib/realtime/channels'
-import { createClient } from '@supabase/supabase-js'
+import { createSupabaseServerClient } from '@/server/db/supabase/server'
 
 /**
- * Broadcasts a message to a live channel using the service role key.
+ * Broadcasts a message to a live channel using the user's session from cookies.
  *
- * This utility allows server-side code to broadcast to private Realtime channels
- * without requiring client authentication.
+ * Automatically reads the user's session from cookies (via createSupabaseServerClient),
+ * matching how the browser client works. All broadcasts are tied to the authenticated
+ * user's session.
  *
  * @param domain - The resource domain (e.g., 'doc', 'comment')
  * @param resourceId - The resource identifier
@@ -19,53 +19,60 @@ export async function broadcastLive(
   event: string,
   payload: unknown
 ): Promise<void> {
-  const supabaseUrl = env.client.NEXT_PUBLIC_SUPABASE_URL
-  const serviceRoleKey = env.server.SUPABASE_SERVICE_ROLE_KEY
+  const channelName = live(domain, resourceId)
 
-  if (!serviceRoleKey) {
-    throw new Error('SUPABASE_SERVICE_ROLE_KEY is required for broadcasting')
+  // Use createServerClient which automatically reads cookies (like browser client)
+  // This ensures the Realtime WebSocket uses the user's session automatically
+  const supabase = await createSupabaseServerClient()
+
+  // Verify user is authenticated using the same client instance
+  const {
+    data: { user }
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    throw new Error('User not authenticated')
   }
 
-  const supabase = createClient(supabaseUrl, serviceRoleKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false
-    }
-  })
-
-  const channelName = live(domain, resourceId)
   const channel = supabase.channel(channelName, {
     config: { private: true }
   })
 
-  // Subscribe to the channel
-  await new Promise<void>((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      reject(new Error(`Timeout subscribing to channel: ${channelName}`))
-    }, 5000)
+  try {
+    // Subscribe to the channel
+    await new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        reject(new Error(`Timeout subscribing to channel: ${channelName}`))
+      }, 5000)
 
-    channel.subscribe(status => {
-      if (status === 'SUBSCRIBED') {
-        clearTimeout(timeout)
-        resolve()
-      } else if (status === 'CHANNEL_ERROR') {
-        clearTimeout(timeout)
-        reject(new Error(`Channel error: ${channelName}`))
-      }
+      channel.subscribe((status, error) => {
+        if (status === 'SUBSCRIBED') {
+          clearTimeout(timeout)
+          resolve()
+        } else if (status === 'CHANNEL_ERROR') {
+          clearTimeout(timeout)
+          const errorMessage = error
+            ? error instanceof Error
+              ? error.message
+              : String(error)
+            : 'Unknown channel error'
+          reject(new Error(`Channel error: ${channelName} - ${errorMessage}`))
+        }
+      })
     })
-  })
 
-  // Send broadcast
-  const result = await channel.send({
-    type: 'broadcast',
-    event,
-    payload
-  })
+    // Send broadcast
+    const result = await channel.send({
+      type: 'broadcast',
+      event,
+      payload
+    })
 
-  // Clean up
-  await supabase.removeChannel(channel)
-
-  if (result === 'error') {
-    throw new Error(`Failed to broadcast ${event} to ${channelName}`)
+    if (result === 'error') {
+      throw new Error(`Failed to broadcast ${event} to ${channelName}`)
+    }
+  } finally {
+    // Clean up
+    await supabase.removeChannel(channel)
   }
 }

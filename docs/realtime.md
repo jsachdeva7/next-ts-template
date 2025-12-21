@@ -3,8 +3,10 @@
 ## What "realtime" means in this template
 
 - Realtime is built on Supabase Realtime (WebSocket-based pub/sub).
-- Provides three patterns: **presence** (who's online), **broadcast**
-  (one-to-many messaging), and **RPC** (request/response).
+- Provides two patterns: **presence** (who's online) and **broadcast**
+  (one-to-many messaging).
+- For request/response patterns, we use **server actions** combined with
+  broadcast for fanout.
 - All hooks handle connection lifecycle and cleanup automatically to prevent
   leaks.
 
@@ -18,9 +20,14 @@
   - `useChannel.ts` - Core hook managing channel lifecycle (used by other hooks)
   - `usePresence.ts` - Hook for tracking who's online
   - `useBroadcast.ts` - Hook for one-to-many messaging
-  - `useRpc.ts` - Hook for request/response patterns
   - `index.ts` - Public API exports
 - `src/features/*` Feature components use realtime hooks for live updates.
+- `src/server/services/realtime/broadcast.ts` - Server-side utility for
+  broadcasting to realtime channels
+- `src/server/commands/*` - Commands that perform business logic and broadcast
+  updates
+- `src/server/actions/*` - Server actions that call commands (used by client
+  components)
 
 ## Channel naming conventions
 
@@ -28,7 +35,6 @@ Use the helper functions to build channel names consistently:
 
 - `presence('type', 'id')` → `presence:topic:type:id` (for presence tracking)
 - `live('type', 'id')` → `live:topic:type:id` (for live data updates)
-- `ctrl('type', 'id')` → `ctrl:topic:type:id` (for control/RPC messages)
 
 This prevents magic strings and naming collisions.
 
@@ -222,40 +228,118 @@ _Note: This is a scaffold. Implementation details may vary once tested._
 
 ---
 
-## RPC (Request/Response)
+## Server Actions + Broadcast (Request/Response with Fanout)
 
-**What it does:** Bidirectional request/response pattern over realtime channels.
-Like calling a function remotely.
+**What it does:** Use Next.js server actions for request/response patterns,
+combined with broadcast for fanout to all connected clients.
 
 **When to use it:**
 
-- Worker/background task communication
-- Requesting data from another client
-- Command/acknowledgment patterns
+- Mutations that need validation or database updates
+- Operations that should update all connected clients
+- Server-side business logic with realtime fanout
 
-### Usage (scaffold)
+**How it works:**
+
+1. Client calls a server action
+2. Server action calls a command (in `src/server/commands/`)
+3. Command performs validation/business logic
+4. Command broadcasts update to all clients via `broadcastLive()`
+5. All clients listening to the live channel receive the update
+
+### Example: Renaming a Document
+
+**Server Action** (`src/server/actions/docs.ts`):
 
 ```tsx
-import { ctrl, useRpc } from '@/lib/realtime'
+'use server'
 
-function WorkerClient() {
-  const { call, notify } = useRpc(ctrl('worker', 'main'))
+import { renameDoc } from '@/server/commands/docs'
 
-  const handleProcessTask = async () => {
-    try {
-      // Send request and wait for response
-      const result = await call('process', { taskId: '123' })
-      console.log('Task completed:', result)
-    } catch (error) {
-      console.error('RPC failed:', error)
-    }
-  }
-
-  return <button onClick={handleProcessTask}>Process Task</button>
+export async function renameDocAction(
+  docId: string,
+  title: string
+): Promise<{ title: string; updatedAt: string }> {
+  return renameDoc(docId, title)
 }
 ```
 
-_Note: This is a scaffold. Implementation details may vary once tested._
+**Command** (`src/server/commands/docs.ts`):
+
+```tsx
+import { broadcastLive } from '@/server/services/realtime/broadcast'
+
+export async function renameDoc(
+  docId: string,
+  title: string
+): Promise<{ title: string; updatedAt: string }> {
+  // Validate
+  if (!title || title.trim().length === 0) {
+    throw new Error('Title cannot be empty')
+  }
+
+  const trimmedTitle = title.trim()
+
+  // Broadcast to all clients
+  await broadcastLive('doc', docId, 'delta', {
+    type: 'title_updated',
+    title: trimmedTitle
+  })
+
+  return {
+    title: trimmedTitle,
+    updatedAt: new Date().toISOString()
+  }
+}
+```
+
+**Client Component**:
+
+```tsx
+'use client'
+
+import { live, useBroadcast } from '@/lib/realtime'
+import { renameDocAction } from '@/server/actions'
+
+function LiveDocument({ docId }: { docId: string }) {
+  const [title, setTitle] = useState('My Document')
+  const { on } = useBroadcast(live('doc', docId))
+
+  // Listen for updates from any client (including this one)
+  useEffect(() => {
+    on('delta', (payload: { type?: string; title?: string }) => {
+      if (payload.type === 'title_updated' && payload.title) {
+        setTitle(currentTitle => {
+          // Only update if different to avoid double-set
+          return payload.title !== currentTitle ? payload.title : currentTitle
+        })
+      }
+    })
+  }, [on])
+
+  const handleRename = async (newTitle: string) => {
+    try {
+      // Call server action (returns immediately on success)
+      const result = await renameDocAction(docId, newTitle)
+      setTitle(result.title) // Optimistic update
+    } catch (error) {
+      // Handle error (validation failed, etc.)
+      console.error('Rename failed:', error)
+    }
+  }
+
+  return <input value={title} onChange={e => handleRename(e.target.value)} />
+}
+```
+
+**Key Points:**
+
+- Server actions handle validation and business logic
+- `broadcastLive()` sends updates to all clients on the live channel
+- Clients listen to the live channel for real-time updates
+- The initiating client updates optimistically from the action response
+- Other clients (and the initiating client via broadcast) sync via the live
+  channel
 
 ---
 

@@ -1,8 +1,6 @@
 import { z } from 'zod'
 
-const serverSchema = z.object({
-  SUPABASE_SERVICE_ROLE_KEY: z.string().optional()
-})
+const serverSchema = z.object({})
 
 const clientSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: z.string().url(),

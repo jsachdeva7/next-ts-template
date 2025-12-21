@@ -104,10 +104,6 @@ Required (safe in client code):
 
 - `NEXT_PUBLIC_SUPABASE_URL` -` NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
 
-Optional (server only, never expose to client code):
-
-- `SUPABASE_SERVICE_ROLE_KEY`
-
 ## Common mistakes and quick debug
 
 - Server returns null user but client is logged in

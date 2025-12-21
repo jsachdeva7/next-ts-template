@@ -11,7 +11,7 @@ export interface DocRenameResult {
  * @param docId - The document identifier
  * @param title - The new title
  * @returns The updated title and timestamp
- * @throws Error if validation fails
+ * @throws Error if validation fails or user is not authenticated
  */
 export async function renameDoc(
   docId: string,
