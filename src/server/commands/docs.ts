@@ -1,4 +1,5 @@
 import { broadcastLive } from '@/server/services/realtime/broadcast'
+import { setDocState } from '@/server/services/realtime/state'
 
 export interface DocRenameResult {
   title: string
@@ -27,6 +28,10 @@ export async function renameDoc(
 
   const trimmedTitle = title.trim()
 
+  // Update server state (source of truth)
+  setDocState(docId, { title: trimmedTitle })
+
+  // Broadcast delta update
   await broadcastLive('doc', docId, 'delta', {
     type: 'title_updated',
     title: trimmedTitle
@@ -36,4 +41,25 @@ export async function renameDoc(
     title: trimmedTitle,
     updatedAt: new Date().toISOString()
   }
+}
+
+/**
+ * Updates document content and broadcasts the update to all connected clients.
+ *
+ * @param docId - The document identifier
+ * @param content - The new content
+ * @throws Error if user is not authenticated
+ */
+export async function updateDocContent(
+  docId: string,
+  content: string
+): Promise<void> {
+  // Update server state (source of truth)
+  setDocState(docId, { content })
+
+  // Broadcast delta update
+  await broadcastLive('doc', docId, 'delta', {
+    type: 'content_updated',
+    content
+  })
 }

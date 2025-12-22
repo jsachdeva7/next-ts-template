@@ -5,8 +5,10 @@ import { live, presence, useBroadcast, usePresence } from '@/lib/realtime'
 import { showToast } from '@/lib/toast'
 import {
   getCurrentUserProfileAction,
+  getDocStateAction,
   getUserAction,
-  renameDocAction
+  renameDocAction,
+  updateDocContentAction
 } from '@/server/actions'
 import { User } from '@supabase/supabase-js'
 import { Eye, FileText } from 'lucide-react'
@@ -43,15 +45,22 @@ export default function LiveDoc() {
       return
     }
 
+    // Optimistic update: update UI immediately
+    const previousTitle = title
+    setTitle(newTitle)
+    setIsEditingTitle(false)
+
+    // Call server action in background
     try {
-      const result = await renameDocAction(docId, newTitle)
-      setTitle(result.title)
-      setIsEditingTitle(false)
+      await renameDocAction(docId, newTitle)
+      // Success - title already updated optimistically
+      // Broadcast will also update it, but the existing logic prevents double-setting
     } catch (error) {
+      // Rollback on error
+      setTitle(previousTitle)
       showToast('error', 'light', {
         message: error instanceof Error ? error.message : 'Rename failed'
       })
-      setEditTitleValue(title)
     }
   }
 
@@ -111,22 +120,67 @@ export default function LiveDoc() {
 
   const { on } = useBroadcast(liveChannel)
 
+  // Throttled content update
+  const contentUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Fetch initial document state when docId is available
   useEffect(() => {
     if (!docId) return
 
-    on('delta', (payload: { type?: string; title?: string }) => {
-      if (payload.type === 'title_updated' && payload.title) {
-        setTitle(currentTitle => {
-          // Only update if different to avoid double-set
-          if (payload.title && payload.title !== currentTitle) {
-            return payload.title
-          }
-          return currentTitle
-        })
-        setIsEditingTitle(false)
+    getDocStateAction(docId)
+      .then(state => {
+        if (state?.title) {
+          setTitle(state.title)
+        }
+        if (state?.content) {
+          setContent(state.content)
+        }
+      })
+      .catch(error => {
+        logger.error('[LiveDoc] Failed to load doc state:', error)
+      })
+  }, [docId])
+
+  useEffect(() => {
+    if (!docId) return
+
+    // Listen for delta updates (real-time changes)
+    on(
+      'delta',
+      (payload: { type?: string; title?: string; content?: string }) => {
+        if (payload.type === 'title_updated' && payload.title) {
+          setTitle(currentTitle => {
+            if (payload.title && payload.title !== currentTitle) {
+              return payload.title
+            }
+            return currentTitle
+          })
+          setIsEditingTitle(false)
+        }
+
+        if (
+          payload.type === 'content_updated' &&
+          payload.content !== undefined
+        ) {
+          setContent(currentContent => {
+            if (payload.content !== currentContent) {
+              return payload.content!
+            }
+            return currentContent
+          })
+        }
       }
-    })
+    )
   }, [on, docId])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (contentUpdateTimeoutRef.current) {
+        clearTimeout(contentUpdateTimeoutRef.current)
+      }
+    }
+  }, [])
 
   return (
     <div className='w-full max-w-2xl rounded-lg border border-neutral-200 bg-white shadow-sm'>
@@ -171,7 +225,25 @@ export default function LiveDoc() {
       <div className='px-4 py-2'>
         <textarea
           value={content}
-          onChange={e => setContent(e.target.value)}
+          onChange={e => {
+            const newContent = e.target.value
+            setContent(newContent)
+
+            // Throttle: send update after 500ms of no changes
+            if (contentUpdateTimeoutRef.current) {
+              clearTimeout(contentUpdateTimeoutRef.current)
+            }
+
+            if (docId) {
+              contentUpdateTimeoutRef.current = setTimeout(async () => {
+                try {
+                  await updateDocContentAction(docId, newContent)
+                } catch (error) {
+                  logger.error('[LiveDoc] Failed to update content:', error)
+                }
+              }, 500)
+            }
+          }}
           placeholder='Start typing...'
           className='w-full resize-none border-none bg-transparent p-0 text-neutral-900 placeholder:text-neutral-400 focus:outline-none'
           rows={8}
