@@ -1,7 +1,7 @@
 @import 'tailwindcss';
-@import 'react-toastify/dist/ReactToastify.css';
 @import 'tw-animate-css';
 
+/* stylelint-disable-next-line */
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -63,6 +63,7 @@
   }
 }
 
+/* stylelint-disable-next-line */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -140,9 +141,22 @@
 
 @layer base {
   * {
+    /* stylelint-disable-next-line */
     @apply border-border outline-ring/50;
   }
   body {
+    /* stylelint-disable-next-line */
     @apply bg-background text-foreground;
   }
+}
+
+/* Sonner toast variants */
+.toast-variant-light {
+  background: rgb(255, 255, 255) !important;
+  color: rgb(23, 23, 23) !important;
+}
+
+.toast-variant-dark {
+  background: rgb(38, 38, 38) !important;
+  color: rgb(255, 255, 255) !important;
 }

@@ -131,7 +131,7 @@ await sleep(200)
 ## `toast.tsx` — toast notifications (react-toastify)
 
 Use `showToast()` to display toast notifications throughout the app. Built on
-top of react-toastify with a custom Toast component.
+top of shadcn with a custom Toast component.
 
 Toast types:
 

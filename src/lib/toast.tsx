@@ -1,24 +1,28 @@
-import Toast, {
-  type ToastData,
-  type ToastType,
-  type ToastVariant
-} from '@/ui/Toast'
-import type { ToastContentProps, ToastOptions } from 'react-toastify'
-import { toast } from 'react-toastify'
+import { toast } from 'sonner'
+
+export type ToastType = 'success' | 'error' | 'info' | 'warning'
+export type ToastVariant = 'light' | 'dark'
+export type ToastData = { message: string }
 
 export function showToast(
   type: ToastType,
   variant: ToastVariant | undefined,
   data: ToastData,
-  options?: ToastOptions
+  options?: { duration?: number }
 ) {
-  return toast(
-    (props: ToastContentProps) => (
-      <Toast {...props} type={type} variant={variant} data={data} />
-    ),
-    {
-      closeButton: false,
-      ...options
-    }
-  )
+  // Map your types to Sonner's API
+  const toastFn = {
+    success: toast.success,
+    error: toast.error,
+    info: toast.info,
+    warning: toast.warning
+  }[type]
+
+  const variantClass =
+    variant === 'dark' ? 'toast-variant-dark' : 'toast-variant-light'
+
+  return toastFn(data.message, {
+    duration: options?.duration || 1000,
+    className: variantClass
+  })
 }
