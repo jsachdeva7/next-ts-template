@@ -183,7 +183,7 @@ export default function LiveDoc() {
   }, [])
 
   return (
-    <div className='w-full max-w-2xl rounded-lg border border-neutral-200 bg-white shadow-sm'>
+    <div className='w-full max-w-2xl overflow-hidden rounded-lg border border-neutral-200 bg-white shadow-sm'>
       <div className='flex items-center justify-between gap-1 border-b border-neutral-200 bg-neutral-50 px-4 py-2'>
         <div className='flex items-center gap-1'>
           <FileText className='size-4.5 text-neutral-500' />
