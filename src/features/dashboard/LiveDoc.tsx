@@ -1,5 +1,6 @@
 'use client'
 
+import DocContextMenu from '@/features/dashboard/DocContextMenu'
 import { logger } from '@/lib/logger'
 import { live, presence, useBroadcast, usePresence } from '@/lib/realtime'
 import { showToast } from '@/lib/toast'
@@ -122,6 +123,7 @@ export default function LiveDoc() {
 
   // Throttled content update
   const contentUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Fetch initial document state when docId is available
   useEffect(() => {
@@ -222,33 +224,42 @@ export default function LiveDoc() {
           </span>
         </div>
       </div>
-      <div className='px-4 py-2'>
-        <textarea
-          value={content}
-          onChange={e => {
-            const newContent = e.target.value
-            setContent(newContent)
+      <DocContextMenu
+        textareaRef={textareaRef}
+        content={content}
+        setContent={setContent}
+        contentUpdateTimeoutRef={contentUpdateTimeoutRef}
+        docId={docId}
+      >
+        <div className='px-4 py-2'>
+          <textarea
+            ref={textareaRef}
+            value={content}
+            onChange={e => {
+              const newContent = e.target.value
+              setContent(newContent)
 
-            // Throttle: send update after 500ms of no changes
-            if (contentUpdateTimeoutRef.current) {
-              clearTimeout(contentUpdateTimeoutRef.current)
-            }
+              // Throttle: send update after 500ms of no changes
+              if (contentUpdateTimeoutRef.current) {
+                clearTimeout(contentUpdateTimeoutRef.current)
+              }
 
-            if (docId) {
-              contentUpdateTimeoutRef.current = setTimeout(async () => {
-                try {
-                  await updateDocContentAction(docId, newContent)
-                } catch (error) {
-                  logger.error('[LiveDoc] Failed to update content:', error)
-                }
-              }, 500)
-            }
-          }}
-          placeholder='Start typing...'
-          className='w-full resize-none border-none bg-transparent p-0 text-neutral-900 placeholder:text-neutral-400 focus:outline-none'
-          rows={8}
-        />
-      </div>
+              if (docId) {
+                contentUpdateTimeoutRef.current = setTimeout(async () => {
+                  try {
+                    await updateDocContentAction(docId, newContent)
+                  } catch (error) {
+                    logger.error('[LiveDoc] Failed to update content:', error)
+                  }
+                }, 500)
+              }
+            }}
+            placeholder='Start typing...'
+            className='w-full resize-none border-none bg-transparent p-0 text-neutral-900 placeholder:text-neutral-400 focus:outline-none'
+            rows={8}
+          />
+        </div>
+      </DocContextMenu>
     </div>
   )
 }

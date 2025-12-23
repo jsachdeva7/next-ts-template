@@ -1,7 +1,7 @@
 'use client'
 
 import { showToast } from '@/lib/toast'
-import Button from '@/ui/Button'
+import { Button } from '@/ui/Button'
 
 export default function ToastButton() {
   return (

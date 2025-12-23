@@ -1,7 +1,7 @@
 'use client'
 
 import { authClient } from '@/lib/auth/client'
-import Button from '@/ui/Button'
+import { Button } from '@/ui/Button'
 import { CircleCheck } from 'lucide-react'
 import { useState } from 'react'
 

@@ -2,7 +2,7 @@
 
 import { authClient } from '@/lib/auth/client'
 import { showToast } from '@/lib/toast'
-import Button from '@/ui/Button'
+import { Button } from '@/ui/Button'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
