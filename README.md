@@ -7,7 +7,7 @@ preconfigured with:
 - Supabase (BaaS)
 - Tailwind (styling)
 - TanStack Query (server-state caching for React)
-- React Toastify
+- Shadcn
 
 ## `src` Directory Structure
 
