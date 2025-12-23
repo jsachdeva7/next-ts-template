@@ -14,12 +14,6 @@ export const realtimeEvents = {
     snapshot: 'snapshot',
     delta: 'delta',
     error: 'error'
-  },
-  /** Control plane events: RPC calls, notifications */
-  ctrl: {
-    rpc: 'rpc',
-    rpcAck: 'rpc_ack',
-    notify: 'notify'
   }
 } as const
 
@@ -30,12 +24,6 @@ export type RealtimeLiveEvent =
   (typeof realtimeEvents.live)[keyof typeof realtimeEvents.live]
 
 /**
- * Control plane event names (RPC/commands).
- */
-export type RealtimeCtrlEvent =
-  (typeof realtimeEvents.ctrl)[keyof typeof realtimeEvents.ctrl]
-
-/**
  * Standard error shape for realtime messages.
  */
 export interface RealtimeError {
@@ -43,43 +31,6 @@ export interface RealtimeError {
   code?: string
   /** Human-readable error message */
   message: string
-}
-
-/**
- * RPC request payload shape.
- *
- * @template TParams - Type of the parameters being sent
- */
-export interface RpcRequest<TParams = unknown> {
-  /** Unique request identifier for correlating responses */
-  requestId: string
-  /** The action name to call */
-  action: string
-  /** Parameters for the action */
-  params: TParams
-  /** Optional resource identifier for routing and authorization */
-  resource?: {
-    /** The domain of the resource (e.g., 'doc', 'comment') */
-    domain: string
-    /** The resource identifier (e.g., docId, commentId) */
-    resourceId: string
-  }
-}
-
-/**
- * RPC acknowledgment payload shape.
- *
- * @template TResult - Type of the result data
- */
-export interface RpcAck<TResult = unknown> {
-  /** Request identifier to correlate with the original request */
-  requestId: string
-  /** Whether the RPC call succeeded */
-  ok: boolean
-  /** Result data (present when ok is true) */
-  data?: TResult
-  /** Error message (present when ok is false) */
-  error?: string
 }
 
 /**
@@ -103,8 +54,8 @@ export interface RealtimeEnvelope<T = unknown> {
   ts: string
   /** Topic identifier (e.g., "topic:game:123") */
   topic: string
-  /** Event type name (e.g., "snapshot", "delta", "rpc") - can be a known event or custom string */
-  type: RealtimeLiveEvent | RealtimeCtrlEvent | (string & {})
+  /** Event type name (e.g., "snapshot", "delta") - can be a known event or custom string */
+  type: RealtimeLiveEvent | (string & {})
   /** The actual data payload */
   data: T
 }

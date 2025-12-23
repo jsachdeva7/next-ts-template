@@ -13,11 +13,12 @@
   `requireRole()`.
 - `src/lib/auth/*` Provider-agnostic client auth API (`authClient`) for
   sign-in/sign-up/sign-out.
-- `src/middleware.ts` Runs before requests to refresh/keep cookies in sync for
-  SSR.
+- `src/proxy.ts` Runs before requests to refresh/keep cookies in sync for SSR.
 - `src/app/*` Pages gate access by calling server auth helpers.
-- `src/features/*` Feature UI + hooks + server actions that rely on
-  `src/server/auth/*` and `src/lib/auth/*`.
+- `src/features/*` Feature UI (client and server components) + hooks that rely
+  on `src/server/auth/*` and `src/lib/auth/*`.
+- `src/server/actions/*` Server actions that rely on `src/server/auth/*` for
+  authentication and authorization.
 
 ## Which Supabase client to use
 
@@ -37,7 +38,7 @@
 
 ## Request lifecycle mental model
 
-- Request comes in → `src/middleware.ts` runs.
+- Request comes in → `src/proxy.ts` runs.
 - Middleware calls `updateSupabaseSession(req)` → refreshes tokens if needed and
   updates cookies.
 - Server code calls `createSupabaseServerClient()` → reads fresh cookies →
@@ -108,7 +109,7 @@ Required (safe in client code):
 
 - Server returns null user but client is logged in
   - Usually middleware isn’t running or cookie refresh isn’t happening. Confirm
-    `src/middleware.ts` exists and matches your routes.
+    `src/proxy.ts` exists and matches your routes.
 - Auth works locally but not in prod
   - Usually redirect URL / site URL configuration.
 - “Set cookie” errors in server components

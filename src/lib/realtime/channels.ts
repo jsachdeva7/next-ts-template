@@ -11,8 +11,6 @@
 export const realtimeNamespaces = {
   /** Data plane: live updates, snapshots, deltas */
   live: 'live',
-  /** Control plane: RPC calls, notifications, commands */
-  ctrl: 'ctrl',
   /** Presence plane: who's online, ephemeral state */
   presence: 'presence'
 } as const
@@ -77,14 +75,14 @@ export function topic(type: string, id: string): string {
 /**
  * Builds a channel name by combining a namespace and topic.
  *
- * @param namespace - The namespace (live, ctrl, or presence)
+ * @param namespace - The namespace (live or presence)
  * @param topicName - The topic name (should be a pre-built topic string from topic())
  * @returns Channel name in the format <namespace>:<topic>
  *
  * @example
  * ```ts
  * channel('live', topic('game', '123'))  // 'live:topic:game:123'
- * channel('ctrl', topic('room', 'abc'))  // 'ctrl:topic:room:abc'
+ * channel('presence', topic('room', 'abc'))  // 'presence:topic:room:abc'
  * ```
  */
 export function channel(namespace: Namespace, topicName: string): string {
@@ -110,23 +108,6 @@ export function live(type: string, id: string): string {
 }
 
 /**
- * Builds a control (RPC/commands) channel name for a topic.
- *
- * @param type - The resource type
- * @param id - The resource identifier
- * @returns Channel name in the format ctrl:topic:<type>:<id>
- *
- * @example
- * ```ts
- * ctrl('worker', 'main')  // 'ctrl:topic:worker:main'
- * ctrl('service', 'api')  // 'ctrl:topic:service:api'
- * ```
- */
-export function ctrl(type: string, id: string): string {
-  return channel(realtimeNamespaces.ctrl, topic(type, id))
-}
-
-/**
  * Builds a presence channel name for a topic.
  *
  * @param type - The resource type
@@ -148,5 +129,4 @@ export function presence(type: string, id: string): string {
  * These build the full channel name directly.
  */
 export const liveTopic = live
-export const ctrlTopic = ctrl
 export const presenceTopic = presence

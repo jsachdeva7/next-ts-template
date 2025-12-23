@@ -14,7 +14,7 @@ preconfigured with:
 ├─ src/
 │  ├─ app/              # Next.js App Router routes, layouts, pages
 │  │  ├─ api/             # Route handlers (HTTP endpoints)
-│  ├─ features/         # Feature modules (UI, hooks, types, server actions per domain)
+│  ├─ features/         # Feature modules (client and server components, hooks, types)
 │  ├─ lib/              # Application-wide utilities (logger, caching, etc.)
 │  ├─ server/           # Server-side domain logic and infrastructure
 │  │  ├─ auth/            # Session, OAuth, and auth guards

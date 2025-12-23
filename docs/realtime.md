@@ -470,8 +470,8 @@ These are already configured for auth and work for realtime as well.
 
 ## Conventions and boundaries
 
-- **Channel naming:** Always use helpers (`presence()`, `live()`, `ctrl()`)
-  instead of magic strings.
+- **Channel naming:** Always use helpers (`presence()`, `live()`) instead of
+  magic strings.
 - **Lifecycle:** Hooks handle subscription/cleanup automatically. Don't manually
   subscribe/unsubscribe.
 - **State updates:** For presence, update state by calling `track()` with new

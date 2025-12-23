@@ -27,8 +27,8 @@ Rule of thumb: **routes in `app/`, domain in `features/`, server internals in
   Next.js App Router: routes, layouts, providers, and `app/api` route handlers.
 
 - `src/features/`  
-  Domain modules: feature UI + client hooks + feature-level data access + server
-  actions for that domain.
+  Domain modules: feature UI (client and server components) + client hooks +
+  feature-level data access.
 
 - `src/server/`  
   Server-only code: business logic, persistence, auth, and integrations. Called
@@ -45,10 +45,9 @@ Default shape for `src/features/<feature>/`:
 
 ```text
 src/features/<feature>/
-├─ components/        # feature-specific UI
+├─ components/        # feature-specific UI (client and server components)
 ├─ hooks/             # feature-specific hooks
 ├─ api.ts             # TanStack keys + hooks for this feature (expand to api/ if it grows)
-├─ actions.ts         # server actions for this feature (optional)
 ├─ types.ts           # feature types (optional)
 └─ schemas.ts         # validation schemas (optional)
 ```
@@ -87,8 +86,7 @@ Both are valid boundaries. Keep boundaries thin and call into src/server/\*.
 
 **Where server actions live:**
 
-- `src/server/actions/` - Shared server actions used by multiple features
-- `src/features/<feature>/actions.ts` - Feature-specific server actions
+- `src/server/actions/` - All server actions (shared across features)
 
 Use server actions when:
 
@@ -121,17 +119,16 @@ A typical request path:
 ```text
 UI (features/<feature>/components/*)
   → TanStack hook (features/<feature>/api.ts)
-  → Boundary (server action in server/actions/* OR features/<feature>/actions.ts OR app/api/*)
+  → Boundary (server action in server/actions/* OR app/api/*)
   → Server logic (server/queries/* or server/commands/*)
   → DB/service (server/db/*, server/services/*)
 ```
 
 **For client components:**
 
-- Use shared actions from `server/actions/*` when multiple features need the
-  same operation
-- Use feature-specific actions from `features/<feature>/actions.ts` when it's
-  unique to that feature
+- Use server actions from `server/actions/*` to call server logic
+- Actions are organized by domain/feature in `server/actions/` (e.g.,
+  `server/actions/docs.ts`, `server/actions/profiles.ts`)
 
 **For server components:**
 
