@@ -4,9 +4,10 @@ Base template for Next.js (TypeScript) projects with Supabase BaaS,
 preconfigured with:
 
 - pnpm (package manager + lockfile)
+- Supabase (BaaS)
 - Tailwind (styling)
 - TanStack Query (server-state caching for React)
-- Supabase (BaaS)
+- React Toastify
 
 ## `src` Directory Structure
 
